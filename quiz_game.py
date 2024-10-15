@@ -60,6 +60,8 @@ class QuizGame:
 
 
 
+
+
 def read_file(command_arguments, task='r'):
     if len(command_arguments) > 2:
         json_file = command_arguments[2]
@@ -78,16 +80,17 @@ def read_questions_from_json(command_arguments):
     data = list(json.loads(read_file(command_arguments)))
     return data
 
+
 def main():
     command_arguments = sys.argv
     try:
-        if command_arguments[1] in ['-r', '-c', '-w']:
-            if command_arguments[1] == '-r':
-                game = QuizGame(read_questions_from_json(command_arguments))
-                game.play_game()
-                game.show_score()
+        if command_arguments[1] == '-r':
+            game = QuizGame(read_questions_from_json(command_arguments))
+        game.play_game()
+        game.show_score()
     except IndexError:
-        cprint("\nThe command format should like: python quiz_game.py ( -r / -c / -w ) <file_name>", "white", "on_red")
+        cprint("\nThe command format should like: python quiz_game.py -r <file_name>.json", "white", "on_red")
+
 
 if __name__ == "__main__":
     main()
