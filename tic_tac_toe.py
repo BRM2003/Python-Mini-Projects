@@ -1,18 +1,50 @@
 class TicTacToe():
-    desk = []
-    win_row = 0
-    desk_leng = 0
+    __desk = []
+    __players_points = {'X': 0, 'O': 0}
 
-    PLAYERS = ['X', 'O']
+    def __init__(self, number=3):
+        self.desk = number
+    
+    @property
+    def desk(self):
+        return self.__desk
 
-    def __init__(self, number=3, win_row=3):
-        if number < 3:
-            raise Exception("The number of columns can't be less than 3")
+    @desk.setter
+    def desk(self, number):
+        if not 2 < number < 11:
+            raise ValueError("The number of columns must be between 3 and 10")
+
         for _ in range(0, number):
-            self.desk.append([' '] * number)
-        self.win_row = win_row
-        self.desk_leng = len(self.desk)
-        
+            self.__desk.append([' '] * number)
+
+    @property
+    def desk_leng(self):
+        return len(self.__desk)
+
+    @property
+    def points(self):
+        return self.__players_points
+
+    @property
+    def players(self):
+        return list(self.__players_points.keys())
+
+
+    def get_number_from_user(self, label, error_msg='Invalid number!'):
+        while True:
+            try:
+                num = int(input(label).strip())
+                if not 0 < num <= self.desk_leng:
+                    raise ValueError
+                return num
+            except ValueError:
+                print(error_msg)
+    
+
+    def clear_desk(self):
+        for row in range(self.desk_leng):
+            for cell in range(len(self.__desk[row])):
+                self.__desk[row][cell] = ' '
 
 
     def show_desk(self):
@@ -23,38 +55,25 @@ class TicTacToe():
             return row_end
         
         row_line = calculate_count_of_columns()
-        for row in self.desk:
+        for row in self.__desk:
             attributes = ''
             print(row_line)
             for index, attr in enumerate(row):                
                 attributes += ' ' + (attr + ' |' if index < len(row) - 1 else attr)
             print(attributes)
         print(f"{row_line}\n")
-
-
-    def enter_position(self, label):
-        while True:
-            try:
-                user_value = int(input(f"Enter {label} (1-{self.desk_leng}): "))
-
-                if user_value > self.desk_leng or user_value <= 0:
-                    raise ValueError
-                
-                return user_value - 1
-            except ValueError:
-                print('Invalid input!')
     
 
-    def set_value(self, row, column, player=' '):
-        if player.upper() not in self.PLAYERS:
+    def set_value_to_spot(self, row, column, player=' '):
+        if player.upper() not in self.players:
             print("Invalid player\n")
             return False
 
-        if self.desk[row][column] != ' ':
+        if self.__desk[row][column] != ' ':
             print("This spot is already taken\n")
             return False
         
-        self.desk[row][column] = player.upper()
+        self.__desk[row][column] = player.upper()
         return True
     
 
@@ -81,7 +100,7 @@ class TicTacToe():
                     if desk[row_i][column_i] \
                         == desk[row_i + 1][column_i - 1] \
                         == desk[row_i + 2][column_i - 2] and desk[row_i][column_i] != ' ':
-                        return self.desk[row_i][column_i]
+                        return self.__desk[row_i][column_i]
             return False
 
         def check_vertical(desk):
@@ -96,42 +115,68 @@ class TicTacToe():
                 for column in row:
                     if column == ' ':
                         return False
+            return 'Draw!'
                     
-        return check_decreasing_diagonal(self.desk) \
-            or check_increasing_diagonal(self.desk) \
-                    or check_horizontal(self.desk) \
-                        or check_vertical(self.desk) \
-                            or check_draw(self.desk)
+        return check_decreasing_diagonal(self.__desk) \
+            or check_increasing_diagonal(self.__desk) \
+                    or check_horizontal(self.__desk) \
+                        or check_vertical(self.__desk) \
+                            or check_draw(self.__desk)
 
 
     def get_pozitions_from_user(self, player):
         while True:
-            row, column = self.enter_position('row'), self.enter_position('column')
-            if self.set_value(row, column, player):
+            row = self.get_number_from_user(f"Enter row (1-{self.desk_leng}): ") - 1
+            column = self.get_number_from_user(f"Enter column (1-{self.desk_leng}): ") - 1
+            if self.set_value_to_spot(row, column, player):
                 break
 
 
-    def play_game(self):
-        move = 0
-        self.show_desk()
+    def get_marks(self):
+        X, O = self.players
+        return f"\n{X}    {self.points[X]} - {self.points[O]}    {O}\n"
 
+
+    def play_game(self, clear=True):
+        move = 0
+
+        if clear:
+            self.clear_desk()
+
+        self.show_desk()
         game_status = self.check_winner()
+
+
         while game_status == False:
-            print(f"Player {self.PLAYERS[move % 2]}'s turn")
+            print(f"Player {self.players[move % 2]}'s turn")
             
-            self.get_pozitions_from_user(self.PLAYERS[move % 2])
+            self.get_pozitions_from_user(self.players[move % 2])
             
             self.show_desk()
             
             game_status = self.check_winner()
             move += 1
-
-        print(game_status) if game_status == 'Draw!' else print(f"Player {game_status} win!") 
-
+            
+        if game_status == 'Draw!':
+            print(game_status)
+        else:
+            self.points[game_status] += 1
+            print(f"Player {game_status} win!")
         
-try:
-    num_of_col = int(input("Enter the number of columns: "))
-    start_game = TicTacToe(num_of_col)
-    start_game.play_game()
-except Exception as e:
-    print(str(e))
+        print(self.get_marks())
+
+
+    def __str__(self):
+        self.show_desk()
+        return self.get_marks()
+
+
+if __name__ == "__main__":
+    try:
+        user_command = int(input("Enter the number of columns: ").strip())
+        start_game = TicTacToe(user_command)
+        while str(user_command).lower() != 'n':
+            start_game.play_game()
+            user_command = input('Restart? (y/n) : ').strip()
+    except Exception as e:
+        print(str(e))
