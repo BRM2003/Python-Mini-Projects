@@ -1,9 +1,13 @@
+from termcolor import colored, cprint
+import string
+
 class TicTacToe():
     __desk = []
     __players_points = {'X': 0, 'O': 0}
 
-    def __init__(self, number=3):
+    def __init__(self, number=3, num_of_players=2):
         self.desk = number
+        self.add_players(num_of_players - 2)
     
     @property
     def desk(self):
@@ -24,10 +28,18 @@ class TicTacToe():
     @property
     def points(self):
         return self.__players_points
-
+    
     @property
     def players(self):
         return list(self.__players_points.keys())
+
+
+    def add_players(self, number_of_players):
+        if not 0 <= number_of_players < 4:
+            raise ValueError("The number of players must be between 2 and 5")
+        
+        for i in range(number_of_players):
+            self.__players_points[string.ascii_uppercase[i]] = 0
 
 
     def get_number_from_user(self, label, error_msg='Invalid number!'):
@@ -47,6 +59,12 @@ class TicTacToe():
                 self.__desk[row][cell] = ' '
 
 
+    def cell_collor(self, mark):
+        PLAYERS_COLOR = ['red', 'green', 'blue', 'yellow', 'magenta']
+        color = PLAYERS_COLOR[self.players.index(mark)] if mark != " " else "white"
+        return colored(mark, color)
+
+
     def show_desk(self):
         def calculate_count_of_columns():
             row_end, line = '', '---'
@@ -58,8 +76,9 @@ class TicTacToe():
         for row in self.__desk:
             attributes = ''
             print(row_line)
-            for index, attr in enumerate(row):                
-                attributes += ' ' + (attr + ' |' if index < len(row) - 1 else attr)
+            for index, attr in enumerate(row):
+                cell = self.cell_collor(attr)
+                attributes += ' ' + (cell + ' |' if index < len(row) - 1 else cell)
             print(attributes)
         print(f"{row_line}\n")
     
@@ -133,8 +152,7 @@ class TicTacToe():
 
 
     def get_marks(self):
-        X, O = self.players
-        return f"\n{X}    {self.points[X]} - {self.points[O]}    {O}\n"
+        return "\n".join([f"{self.cell_collor(player)} - {self.points[player]}" for player in self.players])
 
 
     def play_game(self, clear=True):
@@ -146,11 +164,11 @@ class TicTacToe():
         self.show_desk()
         game_status = self.check_winner()
 
-
         while game_status == False:
-            print(f"Player {self.players[move % 2]}'s turn")
+            player = self.players[move % len(self.players)]
+            print(f"Player {self.cell_collor(player)}'s turn")
             
-            self.get_pozitions_from_user(self.players[move % 2])
+            self.get_pozitions_from_user(player)
             
             self.show_desk()
             
@@ -158,11 +176,10 @@ class TicTacToe():
             move += 1
             
         if game_status == 'Draw!':
-            print(game_status)
+            cprint(game_status, 'white', 'on_red')
         else:
             self.points[game_status] += 1
-            print(f"Player {game_status} win!")
-        
+            print(f"Player {self.cell_collor(game_status)} win!")
         print(self.get_marks())
 
 
@@ -173,8 +190,9 @@ class TicTacToe():
 
 if __name__ == "__main__":
     try:
-        user_command = int(input("Enter the number of columns: ").strip())
-        start_game = TicTacToe(user_command)
+        user_command = int(input("Enter the number of columns: ").strip() or 3)
+        players = int(input("Enter the number of players: ").strip() or 2)
+        start_game = TicTacToe(user_command, players)
         while str(user_command).lower() != 'n':
             start_game.play_game()
             user_command = input('Restart? (y/n) : ').strip()
