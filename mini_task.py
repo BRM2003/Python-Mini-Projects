@@ -19,19 +19,12 @@ while True:
         print('Invalid number')
     
 # Add list of doors which everyone is closed(FALSE)
-doors = []
-for _ in range(0, number_of_doors):
-    doors.append(False)
-
-# Create a function for change state of door
-def open_or_close(index, state=False):
-    doors[index] = state
+doors = [False for _ in range(0, number_of_doors)]
 
 #using loops, performed an action in which students open or close doors
 for students in range(0, number_of_doors):
-    for door_num in range(0, number_of_doors):
-        if (door_num + 1) % (students + 1) == 0:
-            open_or_close(door_num) if doors[door_num] else open_or_close(door_num, True)             
+    for door_num in range(students, number_of_doors, students + 1):
+        doors[door_num] = not doors[door_num]        
 
 # Find all opened doors and convert into the list
 print([index + 1 for index in range(0, len(doors)) if doors[index]])
