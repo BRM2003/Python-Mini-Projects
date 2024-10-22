@@ -3,6 +3,21 @@ from termcolor import cprint, colored
 class Tasks:
     __title = ''
     __tasks = []
+    __task_statuses = {
+        "new": {"color": "blue"},
+        "in progress": {"color": "yellow"},
+        "completed": {"color": "green"},
+        "canceled": {"color": "red"}
+    }
+
+    def set_status(self, object, status='new'):
+        result = []
+        if isinstance(object, list):
+            for el in object:
+                result.append({el: {'status': status}})
+        else:
+            result.append({str(object): {'status': status}})
+        return result
 
     def __init__(self, title, task_list=[]):
         self.__title = title
@@ -12,15 +27,28 @@ class Tasks:
         return colored(self.__title, 'yellow')
     
     def __add__(self, new_task):
-        if isinstance(new_task, list):
-            self.__tasks += new_task
-        else:
-            self.__tasks.append(new_task)
+        self.__tasks += self.set_status(new_task) if isinstance(new_task, list) else [self.set_status(new_task)]
         return self
 
     @property
     def tasks(self):
         return self.__tasks
+    
+    @property
+    def task_statuses(self):
+        return self.__task_statuses
+    
+
+    def get_task_by_index(self, index):
+        for i, tsk in enumerate(self.tasks):
+            if i == index:
+                return tuple(tsk.keys())[0]
+
+
+    def show_task_statuses(self):
+        statuses = self.__task_statuses
+        for index, status in enumerate(statuses, 1):
+            cprint(f"{index} {status.title()}", statuses[status]['color'])
 
     def delete_task(self, index=None):
         if isinstance(index, int):
@@ -38,7 +66,9 @@ class Tasks:
         else:
             print(f"\n{self} tasks:")
             for index, object in enumerate(self.tasks, 1):
-                print(colored(index, 'yellow'), object)
+                tsk = tuple(object.keys())[0]
+                tsk_color = colored(f"\t {object[tsk]['status']}".title(), self.__task_statuses[object[tsk]['status']]['color'])
+                print(colored(index, 'yellow'), tsk, tsk_color)
 
 
 def main(commands):
@@ -67,6 +97,30 @@ def main(commands):
                 raise Exception
             except Exception:
                 cprint('Invalid task!', 'white', 'on_red')
+    
+    def change_task_status():
+        while True:
+            try:
+                new_todo_list.show_tasks()
+                task_num = int(get("Enter the task number: ")) - 1
+                if not 0 <= task_num < len(new_todo_list.tasks):
+                    raise Exception('task')
+                
+                new_todo_list.show_task_statuses()
+                status = int(get("Enter the status number: ")) - 1
+                if not 0 <= status < len(new_todo_list.task_statuses):
+                    raise Exception('status')
+                
+                print(new_todo_list.get_task_by_index(task_num))
+                print(tuple(new_todo_list.task_statuses.keys())[status])
+
+                new_todo_list.set_status(new_todo_list.get_task_by_index(task_num), tuple(new_todo_list.task_statuses.keys())[status])
+
+                print(f"status of {new_todo_list.get_task_by_index[task_num]} task successfully changed to {[new_todo_list.task_statuses.keys()][status]}")
+            except Exception as e:
+                cprint(f'Invalid {str(e)}!', 'white', 'on_red')
+            except ValueError:
+                cprint(f"Invalid number!", 'white', 'on_red')
                 
 
     while True:
@@ -90,8 +144,10 @@ def main(commands):
                 new_todo_list += add_task()
             elif user_command in (str(commands[2]).lower(), '3'):
                 print(delete_task())
-        except Exception:
-            cprint('Invalid command!', 'white', 'on_red')
+            elif user_command in (str(commands[3]).lower(), '4'):
+                change_task_status()
+        except Exception as e:
+            cprint(f'Invalid command : {str(e)}', 'white', 'on_red')
         
 
 
@@ -99,6 +155,7 @@ COMMANDS = [
     'View Tasks',
     'Add a Task',
     'Remove a Task',
+    'Set task status',
     'Exit'
 ]
 main(COMMANDS)
