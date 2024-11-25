@@ -1,4 +1,5 @@
 from termcolor import cprint, colored
+from tabulate import tabulate
 
 class Tasks:
     __title = ''
@@ -114,8 +115,8 @@ def main(commands):
                 print(new_todo_list.get_task_by_index(task_num))
                 print(tuple(new_todo_list.task_statuses.keys())[status])
 
-                new_todo_list.set_status(new_todo_list.get_task_by_index(task_num), tuple(new_todo_list.task_statuses.keys())[status])
-
+                res = new_todo_list.set_status(new_todo_list.get_task_by_index(task_num), tuple(new_todo_list.task_statuses.keys())[status])
+                print(res)
                 print(f"status of {new_todo_list.get_task_by_index[task_num]} task successfully changed to {[new_todo_list.task_statuses.keys()][status]}")
             except Exception as e:
                 cprint(f'Invalid {str(e)}!', 'white', 'on_red')
